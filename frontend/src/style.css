@@ -1,47 +1,107 @@
+:root {
+  /* Palette - Void & Prism */
+  --c-void: #030303;
+  --c-surface: #0a0a0a;
+  --c-surface-hover: #141414;
+  --c-text-main: #f0f0f0;
+  --c-text-muted: #888888;
+  --c-border: #222222;
+
+  --c-accent-cyan: #00f3ff;
+  --c-accent-magenta: #bc13fe;
+  --c-accent-lime: #ccff00;
+
+  /* Typography */
+  --font-display: 'Unbounded', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+
+  /* Spacing */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 2rem;
+  --space-lg: 4rem;
+  --space-xl: 8rem;
+
+  /* Effects */
+  --glow-cyan: 0 0 20px rgba(0, 243, 255, 0.3);
+  --glow-magenta: 0 0 20px rgba(188, 19, 254, 0.3);
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+::selection {
+  background: var(--c-accent-cyan);
+  color: var(--c-void);
+}
+
 html {
   font-size: 16px;
-  scroll-behavior: smooth;
+  background-color: var(--c-void);
+  color: var(--c-text-main);
+  overflow-x: hidden;
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
-    'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--font-mono);
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  line-height: 1.6;
-}
-
-#app {
   min-height: 100vh;
+  position: relative;
 }
 
-/* 滚动条样式 */
+/* Grain Overlay */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+  z-index: 9999;
+  mix-blend-mode: overlay;
+}
+
+/* Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--c-void);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
+  background: #333;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--c-accent-cyan);
 }
 
-/* 选中文本样式 */
-::selection {
-  background: rgba(102, 126, 234, 0.5);
-  color: #fff;
+/* Utilities */
+.u-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.u-mono {
+  font-family: var(--font-mono);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 
-// API基础URL
+// API Base URL
 const API_BASE = 'http://localhost:8000'
 
-// 类型定义
+// Types
 interface ColorInfo {
   name: string
   hex: string
@@ -18,7 +18,7 @@ interface WordResult {
   similarity: number
 }
 
-// 状态
+// State
 const activeTab = ref<'word-to-color' | 'color-to-word'>('word-to-color')
 const inputWord = ref('')
 const selectedColor = ref('')
@@ -28,18 +28,18 @@ const allColors = ref<ColorInfo[]>([])
 const isLoading = ref(false)
 const errorMessage = ref('')
 
-// 加载所有颜色
+// Load colors on mount
 async function loadColors() {
   try {
     const response = await fetch(`${API_BASE}/api/colors`)
     const data = await response.json()
     allColors.value = data.colors
   } catch (error) {
-    console.error('加载颜色失败:', error)
+    console.error('Failed to load colors:', error)
   }
 }
 
-// 词语转颜色
+// Word -> Color
 async function searchWordToColor() {
   if (!inputWord.value.trim()) return
   
@@ -49,7 +49,7 @@ async function searchWordToColor() {
   
   try {
     const response = await fetch(
-      `${API_BASE}/api/word-to-colors?word=${encodeURIComponent(inputWord.value)}&top_n=10`
+      `${API_BASE}/api/word-to-colors?word=${encodeURIComponent(inputWord.value)}&top_n=12`
     )
     const data = await response.json()
     
@@ -59,13 +59,13 @@ async function searchWordToColor() {
       colorResults.value = data.colors
     }
   } catch (error) {
-    errorMessage.value = '请求失败，请确保后端服务已启动'
+    errorMessage.value = 'CONNECTION_ERROR: Backend offline.'
   } finally {
     isLoading.value = false
   }
 }
 
-// 颜色转词语
+// Color -> Word
 async function searchColorToWord() {
   if (!selectedColor.value) return
   
@@ -75,7 +75,7 @@ async function searchColorToWord() {
   
   try {
     const response = await fetch(
-      `${API_BASE}/api/color-to-words?color=${encodeURIComponent(selectedColor.value)}&top_n=20`
+      `${API_BASE}/api/color-to-words?color=${encodeURIComponent(selectedColor.value)}&top_n=30`
     )
     const data = await response.json()
     
@@ -85,481 +85,569 @@ async function searchColorToWord() {
       wordResults.value = data.words
     }
   } catch (error) {
-    errorMessage.value = '请求失败，请确保后端服务已启动'
+    errorMessage.value = 'CONNECTION_ERROR: Backend offline.'
   } finally {
     isLoading.value = false
   }
 }
 
-// 获取当前选中颜色信息
 const selectedColorInfo = computed(() => {
   return allColors.value.find(c => c.name === selectedColor.value)
 })
 
-// 初始化加载颜色
 loadColors()
 </script>
 
 <template>
-  <div class="app-container">
-    <!-- 头部 -->
-    <header class="header">
-      <h1 class="title">
-        <span class="gradient-text">颜色-语言映射工具</span>
-      </h1>
-      <p class="subtitle">基于 Word2Vec 的语义关联分析</p>
+  <div class="void-interface">
+    <div class="noise-decoration"></div>
+    
+    <header class="cyber-header">
+      <div class="logo-area">
+        <h1 class="glitch-title u-display" data-text="CHROMA_MAP">CHROMA_MAP</h1>
+        <div class="subtitle u-mono">>> SEMANTIC_COLOR_BRIDGE_V1.0</div>
+      </div>
+      <div class="status-indicator">
+        <span class="status-dot"></span>
+        <span class="u-mono">SYSTEM_ONLINE</span>
+      </div>
     </header>
 
-    <!-- 标签切换 -->
-    <div class="tabs">
-      <button 
-        class="tab-btn" 
-        :class="{ active: activeTab === 'word-to-color' }"
-        @click="activeTab = 'word-to-color'"
-      >
-        🔤 词语 → 颜色
-      </button>
-      <button 
-        class="tab-btn" 
-        :class="{ active: activeTab === 'color-to-word' }"
-        @click="activeTab = 'color-to-word'"
-      >
-        🎨 颜色 → 词语
-      </button>
-    </div>
+    <main class="cyber-main">
+      <!-- Mode Switcher -->
+      <div class="mode-selector">
+        <button 
+          class="mode-btn u-mono" 
+          :class="{ active: activeTab === 'word-to-color' }"
+          @click="activeTab = 'word-to-color'"
+        >
+          [A] INPUT_WORD
+        </button>
+        <button 
+          class="mode-btn u-mono" 
+          :class="{ active: activeTab === 'color-to-word' }"
+          @click="activeTab = 'color-to-word'"
+        >
+          [B] SELECT_COLOR
+        </button>
+      </div>
 
-    <!-- 主内容区 -->
-    <main class="main-content">
-      <!-- 词语转颜色 -->
-      <div v-if="activeTab === 'word-to-color'" class="panel">
-        <div class="input-section">
-          <input 
-            v-model="inputWord"
-            type="text"
-            placeholder="输入一个词语，如：海洋、火焰、森林..."
-            class="search-input"
-            @keyup.enter="searchWordToColor"
-          />
-          <button class="search-btn" @click="searchWordToColor" :disabled="isLoading">
-            {{ isLoading ? '搜索中...' : '🔍 搜索' }}
-          </button>
+      <!-- Word to Color View -->
+      <section v-if="activeTab === 'word-to-color'" class="view-panel">
+        <div class="search-matrix">
+          <div class="input-wrapper">
+            <span class="prompt u-mono">></span>
+            <input 
+              v-model="inputWord"
+              type="text"
+              placeholder="ENTER_KEYWORD..."
+              class="cyber-input u-display"
+              @keyup.enter="searchWordToColor"
+            />
+            <button class="cyber-action-btn u-mono" @click="searchWordToColor" :disabled="isLoading">
+              {{ isLoading ? 'PROCESSING...' : 'EXECUTE' }}
+            </button>
+          </div>
         </div>
 
-        <div v-if="errorMessage" class="error-message">
-          {{ errorMessage }}
+        <div v-if="errorMessage" class="error-terminal u-mono">
+          <span class="error-prefix">ERROR:</span> {{ errorMessage }}
         </div>
 
-        <div v-if="colorResults.length > 0" class="results-section">
-          <h3 class="results-title">与「{{ inputWord }}」语义相关的颜色</h3>
-          <div class="color-grid">
+        <div v-if="colorResults.length > 0" class="results-grid">
+          <div class="grid-header u-mono">
+            RESULTS_FOUND: {{ colorResults.length }} // KEYWORD: "{{ inputWord }}"
+          </div>
+          <div class="cards-container">
             <div 
               v-for="color in colorResults" 
               :key="color.name"
-              class="color-card"
+              class="color-unit"
+              :style="{ '--unit-color': color.hex }"
             >
-              <div 
-                class="color-preview" 
-                :style="{ backgroundColor: color.hex }"
-              ></div>
-              <div class="color-info">
-                <div class="color-name">{{ color.name }}</div>
-                <div class="color-hex">{{ color.hex }}</div>
-                <div class="similarity-bar">
-                  <div 
-                    class="similarity-fill" 
-                    :style="{ width: (color.similarity * 100) + '%' }"
-                  ></div>
+              <div class="color-swatch"></div>
+              <div class="unit-data">
+                <div class="unit-header">
+                  <span class="unit-name u-display">{{ color.name }}</span>
+                  <span class="unit-hex u-mono">{{ color.hex }}</span>
                 </div>
-                <div class="similarity-value">相似度: {{ (color.similarity * 100).toFixed(1) }}%</div>
+                <div class="scan-bar-container">
+                  <div class="scan-bar" :style="{ width: (color.similarity * 100) + '%' }"></div>
+                </div>
+                <div class="unit-metrics u-mono">
+                  <span>MATCH_RATE</span>
+                  <span class="highlight">{{ (color.similarity * 100).toFixed(1) }}%</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- 颜色转词语 -->
-      <div v-else class="panel">
-        <div class="input-section">
-          <select v-model="selectedColor" class="color-select">
-            <option value="">选择一个颜色...</option>
-            <option v-for="color in allColors" :key="color.name" :value="color.name">
-              {{ color.name }}
-            </option>
-          </select>
-          <button class="search-btn" @click="searchColorToWord" :disabled="isLoading">
-            {{ isLoading ? '搜索中...' : '🔍 搜索' }}
-          </button>
-        </div>
-
-        <!-- 选中颜色预览 -->
-        <div v-if="selectedColorInfo" class="selected-color-preview">
-          <div 
-            class="big-color-swatch"
-            :style="{ backgroundColor: selectedColorInfo.hex }"
-          ></div>
-          <div class="color-details">
-            <h3>{{ selectedColorInfo.name }}</h3>
-            <p>HEX: {{ selectedColorInfo.hex }}</p>
-            <p>RGB: {{ selectedColorInfo.rgb.join(', ') }}</p>
-            <div class="keywords">
-              <span 
-                v-for="keyword in selectedColorInfo.keywords" 
-                :key="keyword"
-                class="keyword-tag"
-              >
-                {{ keyword }}
-              </span>
-            </div>
+      <!-- Color to Word View -->
+      <section v-else class="view-panel">
+        <div class="search-matrix">
+           <div class="input-wrapper select-wrapper">
+            <span class="prompt u-mono">></span>
+            <select v-model="selectedColor" class="cyber-select u-mono">
+              <option value="">SELECT_CHROMATIC_VALUE...</option>
+              <option v-for="color in allColors" :key="color.name" :value="color.name">
+                {{ color.name }}
+              </option>
+            </select>
+            <button class="cyber-action-btn u-mono" @click="searchColorToWord" :disabled="isLoading">
+              {{ isLoading ? 'PROCESSING...' : 'ANALYZE' }}
+            </button>
           </div>
         </div>
 
-        <div v-if="errorMessage" class="error-message">
-          {{ errorMessage }}
+        <div v-if="selectedColorInfo" class="color-analysis-panel">
+           <div class="analysis-preview" :style="{ backgroundColor: selectedColorInfo.hex }">
+             <div class="preview-overlay u-mono">
+               <div>R:{{ selectedColorInfo.rgb[0] }}</div>
+               <div>G:{{ selectedColorInfo.rgb[1] }}</div>
+               <div>B:{{ selectedColorInfo.rgb[2] }}</div>
+             </div>
+           </div>
+           <div class="analysis-data">
+             <h2 class="u-display">{{ selectedColorInfo.name }}</h2>
+             <div class="tags-cloud">
+               <span v-for="tag in selectedColorInfo.keywords" :key="tag" class="tag u-mono">#{{ tag }}</span>
+             </div>
+           </div>
         </div>
 
-        <div v-if="wordResults.length > 0" class="results-section">
-          <h3 class="results-title">与「{{ selectedColor }}」语义相关的词语</h3>
-          <div class="word-cloud">
+        <div v-if="errorMessage" class="error-terminal u-mono">
+          <span class="error-prefix">ERROR:</span> {{ errorMessage }}
+        </div>
+
+        <div v-if="wordResults.length > 0" class="word-stream">
+          <div class="grid-header u-mono">
+             ASSOCIATED_CONCEPTS_DETECTED //
+          </div>
+          <div class="stream-container">
             <span 
               v-for="(item, index) in wordResults" 
               :key="item.word"
-              class="word-tag"
+              class="data-token u-mono"
               :style="{ 
-                fontSize: (1.5 - index * 0.05) + 'rem',
-                opacity: 0.5 + item.similarity * 0.5
+                '--opacity': 0.4 + item.similarity * 0.6,
+                '--scale': 0.9 + item.similarity * 0.3
               }"
             >
-              {{ item.word }}
-              <span class="word-similarity">{{ (item.similarity * 100).toFixed(0) }}%</span>
+              <span class="token-text">{{ item.word }}</span>
+              <span class="token-value">_{{ (item.similarity * 100).toFixed(0) }}</span>
             </span>
           </div>
         </div>
-      </div>
+      </section>
     </main>
 
-    <!-- 页脚 -->
-    <footer class="footer">
-      <p>Powered by Word2Vec (Tencent AI Lab) | Vue 3 + FastAPI</p>
+    <footer class="cyber-footer u-mono">
+      <div class="footer-line">VOID_SYSTEMS // TENCENT_AI_LAB_EMBEDDINGS</div>
     </footer>
   </div>
 </template>
 
 <style scoped>
-.app-container {
+/* Layout Structure */
+.void-interface {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-sm);
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-  color: #fff;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-.header {
-  text-align: center;
-  padding: 3rem 1rem 2rem;
+/* Header */
+.cyber-header {
+  padding: var(--space-lg) 0 var(--space-md);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-bottom: 1px solid var(--c-border);
+  margin-bottom: var(--space-md);
 }
 
-.title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin: 0;
-}
-
-.gradient-text {
-  background: linear-gradient(120deg, #f093fb 0%, #f5576c 50%, #4facfe 100%);
+.glitch-title {
+  font-size: 3.5rem;
+  line-height: 1;
+  background: linear-gradient(to right, #fff, #999);
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: transparent;
+  position: relative;
 }
 
 .subtitle {
-  color: #a0aec0;
-  margin-top: 0.5rem;
-  font-size: 1.1rem;
+  color: var(--c-accent-cyan);
+  margin-top: var(--space-xs);
+  font-size: 0.9rem;
 }
 
-.tabs {
+.status-indicator {
   display: flex;
-  justify-content: center;
-  gap: 1rem;
-  padding: 0 1rem;
-  margin-bottom: 2rem;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--c-text-muted);
 }
 
-.tab-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
-  padding: 0.8rem 1.5rem;
-  border-radius: 2rem;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background-color: var(--c-accent-lime);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--c-accent-lime);
+  animation: pulse 2s infinite;
 }
 
-.tab-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-}
-
-.tab-btn.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-color: transparent;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-}
-
-.main-content {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
-}
-
-.panel {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
-  border-radius: 1.5rem;
-  padding: 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.input-section {
+/* Mode Selector */
+.mode-selector {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
 }
 
-.search-input, .color-select {
-  flex: 1;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
+.mode-btn {
+  background: transparent;
+  border: 1px solid var(--c-border);
+  color: var(--c-text-muted);
   padding: 1rem 1.5rem;
-  border-radius: 1rem;
-  font-size: 1rem;
-  outline: none;
-  transition: all 0.3s ease;
-}
-
-.search-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.search-input:focus, .color-select:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
-}
-
-.color-select option {
-  background: #1a1a2e;
-  color: #fff;
-}
-
-.search-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  color: #fff;
-  padding: 1rem 2rem;
-  border-radius: 1rem;
   cursor: pointer;
-  font-size: 1rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  flex: 1;
+  text-align: center;
+  font-size: 0.9rem;
+  position: relative;
+  overflow: hidden;
 }
 
-.search-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+.mode-btn:hover {
+  border-color: var(--c-text-main);
+  color: var(--c-text-main);
 }
 
-.search-btn:disabled {
-  opacity: 0.6;
+.mode-btn.active {
+  background: var(--c-surface-hover);
+  border-color: var(--c-accent-cyan);
+  color: var(--c-accent-cyan);
+  box-shadow: inset 0 0 15px rgba(0, 243, 255, 0.1);
+}
+
+.mode-btn.active::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px; height: 100%;
+  background: var(--c-accent-cyan);
+}
+
+/* Search Matrix */
+.search-matrix {
+  margin-bottom: var(--space-lg);
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  padding: 0.5rem;
+  transition: border-color 0.3s ease;
+}
+
+.input-wrapper:focus-within {
+  border-color: var(--c-accent-magenta);
+  box-shadow: var(--glow-magenta);
+}
+
+.prompt {
+  color: var(--c-text-muted);
+  font-size: 1.5rem;
+  padding-left: 1rem;
+}
+
+.cyber-input, .cyber-select {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--c-text-main);
+  font-size: 1.5rem;
+  padding: 1rem;
+  outline: none;
+  text-transform: uppercase;
+  width: 100%;
+}
+
+.cyber-select {
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.cyber-select option {
+  background: var(--c-surface);
+  color: var(--c-text-main);
+}
+
+.cyber-action-btn {
+  background: var(--c-text-main);
+  color: var(--c-void);
+  border: none;
+  padding: 1rem 2rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.cyber-action-btn:hover:not(:disabled) {
+  background: var(--c-accent-cyan);
+  transform: translateX(-2px) translateY(-2px);
+  box-shadow: 4px 4px 0 rgba(255, 255, 255, 0.2);
+}
+
+.cyber-action-btn:disabled {
+  background: var(--c-text-muted);
   cursor: not-allowed;
 }
 
-.error-message {
-  background: rgba(239, 68, 68, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #fca5a5;
+/* Color Cards Layout */
+.grid-header {
+  border-bottom: 1px solid var(--c-border);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--c-text-muted);
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+}
+
+.cards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.color-unit {
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.color-unit:hover {
+  border-color: var(--unit-color);
+  transform: translateY(-5px);
+  box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+}
+
+.color-swatch {
+  height: 120px;
+  background-color: var(--unit-color);
+  border-bottom: 1px solid var(--c-border);
+  position: relative;
+}
+
+.color-unit:hover .color-swatch::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.2) 45%, transparent 50%);
+  background-size: 200% 200%;
+  animation: shine 1s;
+}
+
+.unit-data {
   padding: 1rem;
-  border-radius: 0.5rem;
+}
+
+.unit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
   margin-bottom: 1rem;
 }
 
-.results-section {
-  margin-top: 1.5rem;
+.unit-name {
+  font-size: 1rem;
+  letter-spacing: -0.02em;
 }
 
-.results-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 1.5rem;
-  color: #e2e8f0;
+.unit-hex {
+  font-size: 0.7rem;
+  color: var(--c-text-muted);
 }
 
-.color-grid {
+.scan-bar-container {
+  height: 2px;
+  background: #222;
+  margin-bottom: 0.5rem;
+  width: 100%;
+}
+
+.scan-bar {
+  height: 100%;
+  background: var(--c-accent-cyan);
+  box-shadow: 0 0 8px var(--c-accent-cyan);
+}
+
+.unit-metrics {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--c-text-muted);
+}
+
+.unit-metrics .highlight {
+  color: var(--c-text-main);
+  font-weight: bold;
+}
+
+/* Color Analysis Panel */
+.color-analysis-panel {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: 150px 1fr;
+  gap: 2rem;
+  margin-bottom: 3rem;
+  border: 1px solid var(--c-border);
+  padding: 1.5rem;
+  background: linear-gradient(90deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+}
+
+.analysis-preview {
+  height: 150px;
+  width: 100%;
+  border: 1px solid var(--c-border);
+  position: relative;
+}
+
+.preview-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0,0,0,0.7);
+  padding: 4px;
+  font-size: 0.7rem;
+  display: flex;
+  justify-content: space-around;
+  backdrop-filter: blur(4px);
+}
+
+.analysis-data h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: var(--c-text-main);
+}
+
+.tags-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tag {
+  border: 1px solid var(--c-border);
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  color: var(--c-text-muted);
+  transition: color 0.2s;
+}
+
+.tag:hover {
+  border-color: var(--c-accent-magenta);
+  color: var(--c-accent-magenta);
+}
+
+/* Word Stream */
+.stream-container {
+  display: flex;
+  flex-wrap: wrap;
   gap: 1rem;
 }
 
-.color-card {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 1rem;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.color-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.color-preview {
-  height: 80px;
-  transition: height 0.3s ease;
-}
-
-.color-card:hover .color-preview {
-  height: 100px;
-}
-
-.color-info {
-  padding: 1rem;
-}
-
-.color-name {
-  font-weight: 600;
-  font-size: 1.1rem;
-  margin-bottom: 0.25rem;
-}
-
-.color-hex {
-  color: #a0aec0;
-  font-size: 0.9rem;
-  font-family: monospace;
-  margin-bottom: 0.5rem;
-}
-
-.similarity-bar {
-  height: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
-  overflow: hidden;
-  margin-bottom: 0.5rem;
-}
-
-.similarity-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
-  border-radius: 2px;
-  transition: width 0.5s ease;
-}
-
-.similarity-value {
-  font-size: 0.85rem;
-  color: #a0aec0;
-}
-
-.selected-color-preview {
-  display: flex;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 1rem;
-}
-
-.big-color-swatch {
-  width: 120px;
-  height: 120px;
-  border-radius: 1rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
-
-.color-details h3 {
-  margin: 0 0 0.5rem;
-  font-size: 1.5rem;
-}
-
-.color-details p {
-  margin: 0.25rem 0;
-  color: #a0aec0;
-  font-family: monospace;
-}
-
-.keywords {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-}
-
-.keyword-tag {
-  background: rgba(102, 126, 234, 0.3);
-  padding: 0.25rem 0.75rem;
-  border-radius: 1rem;
-  font-size: 0.85rem;
-}
-
-.word-cloud {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-}
-
-.word-tag {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
-  padding: 0.5rem 1rem;
-  border-radius: 2rem;
+.data-token {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  padding: 0.5rem 1rem;
+  opacity: var(--opacity);
+  transform: scale(var(--scale));
   transition: all 0.3s ease;
-  cursor: default;
+  cursor: crosshair;
 }
 
-.word-tag:hover {
+.data-token:hover {
+  border-color: var(--c-accent-lime);
+  color: var(--c-accent-lime);
+  opacity: 1 !important;
   transform: scale(1.1);
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.5), rgba(118, 75, 162, 0.5));
+  box-shadow: 0 0 15px rgba(204, 255, 0, 0.2);
+  z-index: 10;
 }
 
-.word-similarity {
+.token-value {
   font-size: 0.7em;
-  color: #a0aec0;
+  color: var(--c-text-muted);
 }
 
-.footer {
+/* Error */
+.error-terminal {
+  border-left: 2px solid #ff003c;
+  background: rgba(255, 0, 60, 0.1);
+  padding: 1rem;
+  margin-top: 1rem;
+  color: #ff003c;
+}
+
+/* Footer */
+.cyber-footer {
+  margin-top: auto;
+  padding: 2rem 0;
   text-align: center;
-  padding: 2rem;
-  color: #64748b;
-  font-size: 0.9rem;
-  margin-top: 2rem;
+  border-top: 1px solid var(--c-border);
+  color: var(--c-text-muted);
+  font-size: 0.7rem;
 }
 
-@media (max-width: 640px) {
-  .title {
-    font-size: 1.8rem;
+/* Responsive */
+@media (max-width: 768px) {
+  .cyber-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
   }
   
-  .tabs {
-    flex-direction: column;
+  .glitch-title {
+    font-size: 2rem;
   }
-  
-  .input-section {
-    flex-direction: column;
-  }
-  
-  .selected-color-preview {
-    flex-direction: column;
-    align-items: center;
+
+  .color-analysis-panel {
+    grid-template-columns: 1fr;
     text-align: center;
   }
   
-  .color-grid {
-    grid-template-columns: 1fr;
+  .analysis-preview {
+    margin: 0 auto;
+    width: 100px;
+    height: 100px;
   }
+  
+  .tags-cloud {
+    justify-content: center;
+  }
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(204, 255, 0, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(204, 255, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(204, 255, 0, 0); }
+}
+
+@keyframes shine {
+  0% { transform: translateX(-100%) translateY(-100%); }
+  100% { transform: translateX(100%) translateY(100%); }
 }
 </style>
